@@ -6,13 +6,17 @@ This project generates a product feed from a sqlite file. The feed is generated 
 - Python 3.6+
 
 ## Installation
-1. run `git clone git@github.com:SamerMakni/product_feed.git`
-2. run `cd product_feed`
+```bash
+git clone git@github.com:SamerMakni/product_feed.git`
+cd product_feed
+```
 
 
 ## Usage
-1. run `python3 main.py`
-2. The feed will be generated in `output/feed.xml`
+```bash
+python3 main.py
+```
+The feed will be generated in `output/feed.xml`
 
 ## Explanation of files and directories
 - `main.py`: The main file of the project. It contains the main function that ru,s when the project is executed.
