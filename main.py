@@ -1,4 +1,7 @@
-from util import db_connection
+from utils import db_connection, validate_product
+from xml.dom import minidom 
+import time
+import config
 
 
 @db_connection()
@@ -23,9 +26,10 @@ def additional_image_fetcher(connection):
         product_id, image = row
         if product_id not in product_images_dict:
             product_images_dict[product_id] = {'id': product_id, 'additional_images': []}
-        product_images_dict[product_id]['additional_images'].append(f"https://butopea.com/{image}")
+        product_images_dict[product_id]['additional_images'].append(f"{config.base_url}/{image}")
 
     return product_images_dict
+
 
 
 @db_connection()
@@ -60,10 +64,87 @@ def product_fetcher(connection):
         except:
             product_images = []
             print(f"No additional product images for {row[0]}")
-        row = row + (product_images, f"{base_url}p/{row[0]}", "new", "HUF")
-        valid_row = validate_product(dict(zip(columns, row)))
+        row = row + (product_images, f"{config.base_url}/p/{row[0]}", "new", "HUF")
+        product = dict(zip(columns, row))
+        valid_row = validate_product(product)
         if valid_row:
-            results.append(dict(zip(columns, row)))
+            results.append(product)
         else:
-            print(row[0])
+            print(f"Product {product['id']} does not conform to Google Merchant specifications (check validate_product in utils.py).")
     return results
+
+
+def feed_generator(products):
+    root = minidom.Document()  
+    xml = root.createElement('feed')  
+    xml.setAttribute('xmlns', 'http://www.w3.org/2005/Atom')
+    xml.setAttribute('xmlns:g', 'http://base.google.com/ns/1.0')
+    root.appendChild(xml)
+
+    title = root.createElement('title')
+    title.appendChild(root.createTextNode('Product Feed'))
+    xml.appendChild(title)
+
+    link = root.createElement('link')
+    link.setAttribute('href', config.base_url)
+    xml.appendChild(link)
+
+    updated = root.createElement('updated')
+    updated.appendChild(root.createTextNode(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
+    xml.appendChild(updated)
+
+    for product in products:
+        entry = root.createElement('entry')
+        xml.appendChild(entry)
+
+        id = root.createElement('g:id')
+        id.appendChild(root.createTextNode(product['id']))
+        entry.appendChild(id)
+
+        title = root.createElement('g:title')
+        title.appendChild(root.createTextNode(product['title']))
+        entry.appendChild(title)
+
+        description = root.createElement('g:description')
+        description.appendChild(root.createTextNode(product['description']))
+        entry.appendChild(description)
+
+        link = root.createElement('g:link')
+        link.appendChild(root.createTextNode(product['link']))
+        entry.appendChild(link)
+
+        image_link = root.createElement('g:image_link')
+        image_link.appendChild(root.createTextNode(f"{config.base_url}/{product['image_link']}"))
+        entry.appendChild(image_link)
+        try:
+            additional_images = product['additional_image_link']['additional_images']
+            for additional_image_link in additional_images:
+                additional_image_linkNode = root.createElement('g:additional_image_link')
+                additional_image_linkNode.appendChild(root.createTextNode(additional_image_link))
+                entry.appendChild(additional_image_linkNode)      
+        except:
+            pass
+        availability = root.createElement('g:availability')
+        availability.appendChild(root.createTextNode(product['availability']))
+        entry.appendChild(availability)
+
+        price = root.createElement('g:price')
+        price.appendChild(root.createTextNode(f"{product['price']} {product['currency']}"))
+        entry.appendChild(price)
+
+        brand = root.createElement('g:brand')
+        brand.appendChild(root.createTextNode(product['brand']))
+        entry.appendChild(brand)
+
+        condition = root.createElement('g:condition')
+        condition.appendChild(root.createTextNode(product['condition']))
+        entry.appendChild(condition)
+
+    xml_str = root.toprettyxml(indent ="\t")
+
+    with open(config.file_output, "a") as f: 
+        f.write(xml_str) 
+        print(f"Succefully created {config.file_output}")
+
+
+feed_generator(product_fetcher())
