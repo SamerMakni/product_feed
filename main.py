@@ -7,7 +7,7 @@ import os
 @db_connection()
 def additional_image_fetcher(connection):
     """
-    Fetch product information from the database and prepare it for export.
+    Fetch additional images for database and prepare it for further use.
     
     Args:
         connection: Database connection object.
