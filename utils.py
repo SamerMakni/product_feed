@@ -1,7 +1,8 @@
 import sqlite3
 from functools import wraps
+import config
 
-def db_connection(db_location="./data.sqlite"):
+def db_connection(db_location=config.database):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -23,6 +24,8 @@ def validate_product(product):
         return False
     
     additional_images = product.get('additional_image_link', [])
+    if not len(additional_images) <= 10:
+        return False
     if not all(isinstance(img, str) and 1 <= len(img) <= 2000 for img in additional_images):
         return False
     
@@ -36,5 +39,4 @@ def validate_product(product):
     
     if not (product.get('brand') and 1 <= len(product['brand']) <= 70):
         return False
-
     return True
