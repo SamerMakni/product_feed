@@ -7,7 +7,7 @@ This project generates a product feed from a sqlite file. The feed is generated 
 
 ## Installation
 ```bash
-git clone git@github.com:SamerMakni/product_feed.git`
+git clone git@github.com:SamerMakni/product_feed.git
 cd product_feed
 ```
 
