@@ -27,9 +27,9 @@ This project generates a product feed from a sqlite file. The feed is generated 
     - `db_connection()`:
         - We use this decorator function to add a level of abstraction to the connection to the sqlite file. Ensuring reusability and automatic closing of the connection.
         1. `db_connection` function takes an optional argument `db_location` which defaults to `config.database`.
-        2. `decorator` function `func`, which is the function that will be decorated.
+        2. function `func`, which is the function that will be decorated.
         3. `wraps(func)` is a decorator from the functools module.
-        4. `wrapper` function takes any number of arguments, inside this function we establish the connection to the sqlite file. Then `func` is excuted, the with statement in the wrapper function ensures that the connection is automatically closed.
+        4. `wrapper` function takes any number of arguments, inside this function we establish the connection to the sqlite file. Then `func` is executed, the with statement in the wrapper function ensures that the connection is automatically closed.
 
     - `validate_product()`:
         - This function validates a product according to Google Merchant product data specifications, the specifications can be found [here](https://support.google.com/merchants/answer/7052112?hl=en).
@@ -37,7 +37,7 @@ This project generates a product feed from a sqlite file. The feed is generated 
 - `main.py`:
     - The main function of the project is `main()`. Explanation of each function below.
     - `additional_image_fetcher()`:
-        1. @db_connection() is a decorator that will open a connection to the database before function execution and will close the connection after function execution. The connection object is passed to the function as the first parameter.
+        1. `@db_connection()` is a decorator that will open a connection to the database before function execution and will close the connection after function execution. The connection object is passed to the function as the first parameter.
         2. The query will fetch only the active products (status different than 0).
         3. The query will return a list of tuples. Each tuple will contain the product_id and the image path.
         4. The function will return a dictionary where the keys are the product ids and the values are dictionaries with the product_id and a list of additional image paths, we do this this step to simplify the access to the data. (using keys in this case, rather than using indexes in the case of lists).
