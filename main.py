@@ -36,19 +36,22 @@ def product_fetcher(connection):
                           manufacturer.name AS brand,
                           product_description.name AS title,
                           product_description.description,
-                          product.image AS image_link,
-                          product.quantity AS availability,
+                          product.image AS image_link,                   
+                          CASE
+                            WHEN product.quantity > 0 THEN 'In stock'
+                            ELSE 'Out of stock'
+                          END AS availability,
                           product.price     
                    FROM PRODUCT
                    
                    INNER JOIN manufacturer ON product.manufacturer_id = manufacturer.manufacturer_id
                    INNER JOIN product_description ON product.product_id = product_description.product_id
-                   
+
                    WHERE product.status <> "0";
                    """
     additional_images = additional_image_fetcher()
     cursor.execute(query_string)
-    columns = [column[0] for column in cursor.description] + ["additonal_image_link", "link", "condition"]
+    columns = [column[0] for column in cursor.description] + ["additional_image_link", "link", "condition", "currency"]
     print(columns)
     results = []
     for row in cursor.fetchall():
@@ -57,6 +60,10 @@ def product_fetcher(connection):
         except:
             product_images = []
             print(f"No additional product images for {row[0]}")
-        row = row + (product_images, f"https://butopea.com/p/{row[0]}", "new")
-        results.append(dict(zip(columns, row)))
+        row = row + (product_images, f"{base_url}p/{row[0]}", "new", "HUF")
+        valid_row = validate_product(dict(zip(columns, row)))
+        if valid_row:
+            results.append(dict(zip(columns, row)))
+        else:
+            print(row[0])
     return results
