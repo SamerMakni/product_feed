@@ -6,6 +6,24 @@ import os
 
 @db_connection()
 def additional_image_fetcher(connection):
+    """
+    Fetch product information from the database and prepare it for export.
+    
+    Args:
+        connection: Database connection object.
+
+    Returns:
+        dict: A dictionary where keys are product IDs and values are dictionaries containing
+              product information including the product ID and a list of additional image URLs.
+              Example: 
+              {
+                  'product_id': {
+                      'id': 'product_id',
+                      'additional_images': ['image_url1', 'image_url2', ...]
+                  },
+                  ...
+              }
+    """
     cursor = connection.cursor()
     query_string = """
                     SELECT product_image.product_id,
@@ -17,7 +35,6 @@ def additional_image_fetcher(connection):
                     WHERE product.status <> "0"
                     ORDER BY product_image.sort_order
                    """
-
     cursor.execute(query_string)
     rows = cursor.fetchall()
 
@@ -27,13 +44,23 @@ def additional_image_fetcher(connection):
         if product_id not in product_images_dict:
             product_images_dict[product_id] = {'id': product_id, 'additional_images': []}
         product_images_dict[product_id]['additional_images'].append(f"{config.base_url}/{image}")
-
     return product_images_dict
 
 
 
 @db_connection()
 def product_fetcher(connection):
+    """
+    Fetch product information from the database and prepare it for further use.
+
+    Args:
+        connection: Database connection object.
+
+    Returns:
+        list: A list of dictionaries containing product information. Each dictionary represents a product 
+              and includes the following keys:
+               ['id','brand','title','description','image_link','availability','price','additional_image_link','link','condition','currency']
+    """
     cursor = connection.cursor()
     query_string = """
                    SELECT product.product_id AS id,
@@ -63,7 +90,6 @@ def product_fetcher(connection):
             product_images = additional_images[row[0]]
         except:
             product_images = []
-            print(f"No additional product images for {row[0]}")
         row = row + (product_images, f"{config.base_url}/p/{row[0]}", "new", "HUF")
         product = dict(zip(columns, row))
         valid_row = validate_product(product)
@@ -75,6 +101,14 @@ def product_fetcher(connection):
 
 
 def feed_generator(products):
+    """
+    Generate an XML product feed.
+
+    Args:
+        products (list): A list of dictionaries containing product information. 
+    Returns:
+        None
+    """
     root = minidom.Document()  
     xml = root.createElement('feed')  
     xml.setAttribute('xmlns', 'http://www.w3.org/2005/Atom')
