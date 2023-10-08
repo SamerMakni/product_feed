@@ -2,7 +2,7 @@ from utils import db_connection, validate_product
 from xml.dom import minidom 
 import time
 import config
-
+import os
 
 @db_connection()
 def additional_image_fetcher(connection):
@@ -141,8 +141,8 @@ def feed_generator(products):
         entry.appendChild(condition)
 
     xml_str = root.toprettyxml(indent ="\t")
-
-    with open(config.file_output, "a") as f: 
+    os.makedirs(os.path.dirname(config.file_output), exist_ok=True)
+    with open(config.file_output, "w") as f: 
         f.write(xml_str) 
         print(f"Succefully created {config.file_output}")
 
