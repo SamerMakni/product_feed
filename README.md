@@ -29,7 +29,7 @@ The feed will be generated in `output/feed.xml`
 ## Explanation of the code
 - `utils.py`:
     - `db_connection()`:
-        - We use this decorator function to add a level of abstraction to the connection to the sqlite file. Ensuring reusability and automatic closing of the connection.
+        - I have used this decorator function to add a level of abstraction to the connection to the sqlite file. Ensuring reusability and automatic closing of the connection.
         1. `db_connection` function takes an optional argument `db_location` which defaults to `config.database`.
         2. function `func`, which is the function that will be decorated.
         3. `wraps(func)` is a decorator from the functools module.
@@ -39,12 +39,12 @@ The feed will be generated in `output/feed.xml`
         - This function validates a product according to Google Merchant product data specifications, the specifications can be found [here](https://support.google.com/merchants/answer/7052112?hl=en).
 
 - `main.py`:
-    - The main function of the project is `main()`. Explanation of each function below.
+    - The main function of the project is `main()`, I have devided the steps of main into 3 functions, so that each function has a clear responsibility.
     - `additional_image_fetcher()`:
         1. `@db_connection()` is a decorator that will open a connection to the database before function execution and will close the connection after function execution. The connection object is passed to the function as the first parameter.
         2. The query will fetch only the active products (status different than 0).
         3. The query will return a list of tuples. Each tuple will contain the product_id and the image path.
-        4. The function will return a dictionary where the keys are the product ids and the values are dictionaries with the product_id and a list of additional image paths, we do this this step to simplify the access to the data. (using keys in this case, rather than using indexes in the case of lists).
+        4. The function will return a dictionary where the keys are the product ids and the values are dictionaries with the product_id and a list of additional image paths, I did this this step to simplify the access to the data. (using keys in this case, rather than using indexes in the case of lists).
     - `product_fetcher()`:
         1. We decorate the function just like the previous function.
         2. The query will fetch all information about the products, except the additional images. since we will fetch them in the previous function. The use of `CASE WHEN` is to convert the availability column to the required format.
